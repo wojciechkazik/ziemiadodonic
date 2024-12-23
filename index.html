@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulator Ilości Ziemi i Drenażu</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f6f6f6;
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+        form {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin: 0 auto;
+            max-width: 600px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #0f4e55;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .results {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: left;
+        }
+        h4 {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h2>Kalkulator Ilości Ziemi i Drenażu</h2>
+    <form id="potCalculatorForm">
+        <label for="potShape">Kształt donicy:</label>
+        <select id="potShape" onchange="toggleDimensions()">
+            <option value="rectangular">Kwadratowa/Prostokątna</option>
+            <option value="circular">Okrągła</option>
+        </select>
+
+        <div id="rectangularDimensions">
+            <label for="length">Długość (cm):</label>
+            <input type="number" id="length" placeholder="Wpisz długość">
+
+            <label for="width">Szerokość (cm):</label>
+            <input type="number" id="width" placeholder="Wpisz szerokość">
+
+            <label for="height">Wysokość (cm):</label>
+            <input type="number" id="height" placeholder="Wpisz wysokość">
+        </div>
+
+        <div id="circularDimensions" style="display: none;">
+            <label for="diameter">Średnica (cm):</label>
+            <input type="number" id="diameter" placeholder="Wpisz średnicę">
+
+            <label for="heightCircular">Wysokość (cm):</label>
+            <input type="number" id="heightCircular" placeholder="Wpisz wysokość">
+        </div>
+
+        <label for="drainageThickness">Grubość drenażu (cm):</label>
+        <select id="drainageThickness">
+            <option value="10">10 cm</option>
+            <option value="20">20 cm</option>
+            <option value="30">30 cm</option>
+            <option value="0">brak</option>
+        </select>
+
+        <label for="numberOfPots">Liczba donic:</label>
+        <input type="number" id="numberOfPots" placeholder="Wpisz liczbę donic" value="1">
+
+        <label for="soilType">Wybierz rodzaj ziemi:</label>
+        <select id="soilType">
+            <option value="10|7">Worki 10 L (7 zł)</option>
+            <option value="20|11">Worki 20 L (11 zł)</option>
+            <option value="50|25">Worki 50 L (25 zł)</option>
+            <option value="80|33">Worki 80 L (33 zł)</option>
+            <option value="1000|300">Bigbag 1000 L (300 zł)</option>
+        </select>
+
+        <button type="button" onclick="calculate()">Oblicz</button>
+    </form>
+
+    <div id="results" class="results" style="display: none;">
+        <h4>Wyniki dla jednej donicy:</h4>
+        <p>Drenaż: <span id="drainageVolume"></span> L</p>
+        <p>Ziemia: <span id="soilVolume"></span> L</p>
+
+        <h4>Wyniki dla wszystkich donic:</h4>
+        <p>Łączna ilość drenażu: <span id="totalDrainage"></span> L</p>
+        <p>Łączna ilość ziemi: <span id="totalSoil"></span> L</p>
+
+        <h4>Koszt ziemi:</h4>
+        <p><span id="bagCount"></span> worków × <span id="bagPrice"></span> zł/szt = <span id="totalCost"></span> zł</p>
+    </div>
+
+    <script>
+        function toggleDimensions() {
+            const potShape = document.getElementById('potShape').value;
+            document.getElementById('rectangularDimensions').style.display = potShape === "rectangular" ? "block" : "none";
+            document.getElementById('circularDimensions').style.display = potShape === "circular" ? "block" : "none";
+        }
+
+        function calculate() {
+            const potShape = document.getElementById('potShape').value;
+            const drainageThickness = parseFloat(document.getElementById('drainageThickness').value) / 100; // cm to m
+            const numberOfPots = parseInt(document.getElementById('numberOfPots').value);
+            const soilTypeValue = document.getElementById('soilType').value;
+            const [bagVolume, bagPrice] = soilTypeValue.split('|').map(Number); // Pobranie objętości i ceny za worek
+
+            let potVolume = 0;
+            let drainageVolume = 0;
+
+            if (potShape === "rectangular") {
+                const length = parseFloat(document.getElementById('length').value) / 100; // cm to m
+                const width = parseFloat(document.getElementById('width').value) / 100; // cm to m
+                const height = parseFloat(document.getElementById('height').value) / 100; // cm to m
+
+                if (isNaN(length) || isNaN(width) || isNaN(height)) {
+                    alert("Proszę wypełnić wszystkie pola.");
+                    return;
+                }
+
+                potVolume = length * width * height;
+                drainageVolume = length * width * drainageThickness;
+            } else if (potShape === "circular") {
+                const diameter = parseFloat(document.getElementById('diameter').value) / 100; // cm to m
+                const height = parseFloat(document.getElementById('heightCircular').value) / 100; // cm to m
+
+                if (isNaN(diameter) || isNaN(height)) {
+                    alert("Proszę wypełnić wszystkie pola.");
+                    return;
+                }
+
+                const radius = diameter / 2;
+                potVolume = Math.PI * Math.pow(radius, 2) * height;
+                drainageVolume = Math.PI * Math.pow(radius, 2) * drainageThickness;
+            }
+
+            const soilVolume = potVolume - drainageVolume;
+            const totalSoilVolume = soilVolume * numberOfPots * 1000; // m³ to L
+
+            const totalBags = Math.ceil(totalSoilVolume / bagVolume);
+            const totalCost = totalBags * bagPrice;
+
+            // Ustawienie wyników
+            document.getElementById('drainageVolume').textContent = (drainageVolume * 1000).toFixed(2); // m³ to L
+            document.getElementById('soilVolume').textContent = (soilVolume * 1000).toFixed(2); // m³ to L
+            document.getElementById('totalDrainage').textContent = (drainageVolume * 1000 * numberOfPots).toFixed(2);
+            document.getElementById('totalSoil').textContent = totalSoilVolume.toFixed(2);
+            document.getElementById('bagCount').textContent = totalBags;
+            document.getElementById('bagPrice').textContent = bagPrice.toFixed(2); // Koszt jednego worka
+            document.getElementById('totalCost').textContent = totalCost.toFixed(2); // Koszt całkowity
+
+            document.getElementById('results').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
